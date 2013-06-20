@@ -1,0 +1,6 @@
+\chapter{View Frsutum Culling}
+
+Da teoria à prática, a maior dificuldade. De entre as diferentes abordagens, após alguma pesquisa, ficamos pela {\bf Geométrica}, pelo simples facto de não haver desvantagens face às restantes a menos em facilidade de implementação.
+
+\section{Bounding Spheres}
+De \textit{axis aligned bounding boxes} a \textit{bounding spheres} advém performance face a uma maior margem de erro, contudo, esta margem não é significativa no contexto do jogo, como tal optamos por \textit{bounding spheres}, uma vez que é suficiente, de mais facil implementação e exige menos processamento.

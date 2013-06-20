@@ -1,0 +1,63 @@
+% vim: set ts=4 sw=4 ai et tw=74:
+
+%\addcontentsline{toc}{chapter}{Lista de Acrónimos}
+
+%Falar dos dois tipos de camaras
+%Tecnicas para a implementaçao destes tipos
+%como mudar entre as camaras
+%codigo
+
+A câmera é posicionada no mundo relativamente ao posicionamento e direcção do jogador. São implementados dois modos de visualização.
+Em termos práticos, o cálculo da posição da câmera consiste em cálculos a partir dos vectores de posição e direcção do jogador, com alguns ajustes para um melhor posicionamento. Isto depende, obviamente do tipo de câmera utilizada:
+
+\begin{description}
+\item[Terceira Pessoa] Câmera colocada atrás do modelo ligeiramente acima e com a direcção do modelo. Ao vector de posição do jogador, é subtraido o seu próprio vector de direcção multiplicado por um factor de distância, para colocar a câmera nas costas do jogador. Há ainda um ajuste na coordenada Y para câmera ficar ligeiramente acima do jogador e ser possível ver o que está para a frente deste. É também feito um teste para impedir que a câmera se posicione abaixo do nível do terreno.
+\item[Primeira Pessoa] Câmera colocada em frente ao modelo com a direcção do modelo. O método de cálculo é semelhante ao anterior, apenas muda a equação, para posicionar a câmera à frente do jogador, em vez de nas suas costas.
+\end{description}
+
+Para ficar mais claro, eis o código de cálculo da posição da câmera:
+
+\begin{lstlisting}[caption=Função de posicionamento da câmera]
+void Camera::placeCamera() {
+	Vertex* pos = g_player->coords;
+	Vertex* dir = g_player->direction;
+
+	glLoadIdentity();
+
+	int cam_mode = InputManager::getOpState(CAMERA_MODE);
+
+	if (cam_mode == KEY_OFF) {
+		int tps_off = conf.rint("camera:tps_off");
+		int tps_y_off = conf.rint("camera:tps_y_off");
+		int tps_dir_y_off = conf.rint("camera:tps_dir_y_off");
+
+		camPos->x = pos->x - tps_off * dir->x;
+		camPos->z = pos->z - tps_off * dir->z;
+		camPos->y = max(pos->y - tps_off * dir->y + tps_y_off, g_map->triangulateHeight(camPos->x, camPos->z) + terrain_offset);
+
+		camDir->x = pos->x;
+		camDir->y = pos->y + tps_dir_y_off;
+		camDir->z = pos->z;
+	} else {
+		int fps_off = conf.rint("camera:fps_off");
+		int fps_y_off = conf.rint("camera:fps_y_off");
+		int fps_dir_y_off = conf.rint("camera:fps_dir_y_off");
+
+		camPos->x = pos->x + fps_off * dir->x;
+		camPos->z = pos->z + fps_off * dir->x;
+		camPos->y = max(pos->y + fps_y_off, g_map->triangulateHeight(camPos->x, camPos->z));
+
+		camDir->x = pos->x + (fps_off + 1) * dir->x;
+		camDir->y = pos->y + dir->y + fps_dir_y_off;
+		camDir->z = pos->z + (fps_off + 1) * dir->z;
+	}
+
+
+	gluLookAt(camPos->x, camPos->y, camPos->z,
+		camDir->x, camDir->y, camDir->z,
+		0, 1, 0);
+}
+
+\end{lstlisting} 
+
+O código começa por saber as coordenadas e direcção do jogador, e conforme o tipo de câmera seleccionado (a câmera pode ser alternada pela tecla 'C'), calcula as posições da câmera, terminando então com a chamada ao \textbf{gluLookAt}.
